@@ -113,7 +113,7 @@ watch(() => route.params.id, (id) => id && load(id), { immediate: true })
             <span>/</span>
             <router-link
               v-if="article.categoryName"
-              :to="{ path: '/', query: { categoryId: article.categoryId } }"
+              :to="{ path: '/articles', query: { categoryId: article.categoryId } }"
             >
               {{ article.categoryName }}
             </router-link>

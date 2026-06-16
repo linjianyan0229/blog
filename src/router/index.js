@@ -14,6 +14,7 @@ const routes = [
     component: () => import('@/layouts/FrontLayout.vue'),
     children: [
       { path: '', name: 'home', component: () => import('@/views/front/HomeView.vue'), meta: { title: '首页' } },
+      { path: 'articles', name: 'articles', component: () => import('@/views/front/ArticleListView.vue'), meta: { title: '文章' } },
       {
         path: 'article/:id',
         name: 'article',

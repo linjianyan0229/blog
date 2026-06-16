@@ -22,6 +22,7 @@ const keyword = ref('')
 
 const navs = [
   { name: 'home', label: '首页', to: '/' },
+  { name: 'articles', label: '文章', to: '/articles' },
   { name: 'categories', label: '分类', to: '/categories' },
   { name: 'tags', label: '标签', to: '/tags' },
   { name: 'links', label: '友链', to: '/links' },
@@ -53,7 +54,7 @@ function closeUserMenu(e) {
 
 function doSearch() {
   const k = keyword.value.trim()
-  router.push({ path: '/', query: k ? { keyword: k } : {} })
+  router.push({ path: '/articles', query: k ? { keyword: k } : {} })
   menuOpen.value = false
 }
 

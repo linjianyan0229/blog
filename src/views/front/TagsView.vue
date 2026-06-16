@@ -43,7 +43,7 @@ load()
       <router-link
         v-for="(t, i) in tags"
         :key="t.id"
-        :to="{ path: '/', query: { tagId: t.id } }"
+        :to="{ path: '/articles', query: { tagId: t.id } }"
         class="tag"
         :class="sizeOf(t, i)"
         :style="{ animationDelay: `${i * 40}ms` }"

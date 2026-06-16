@@ -1,194 +1,87 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { publicApi } from '@/api/public'
 import { useSiteStore } from '@/stores/site'
-import ArticleCard from '@/components/ArticleCard.vue'
-import SkeletonCard from '@/components/SkeletonCard.vue'
-import EmptyState from '@/components/EmptyState.vue'
 
-const route = useRoute()
 const router = useRouter()
 const { homeBackground, homeIntro } = storeToRefs(useSiteStore())
 
-const loading = ref(true)
-const articles = ref([])
-const categories = ref([])
-const page = reactive({ current: 1, size: 9, total: 0, pages: 0 })
-
-const keyword = computed(() => route.query.keyword || '')
-const activeCat = computed(() => (route.query.categoryId ? Number(route.query.categoryId) : null))
-const activeTag = computed(() => (route.query.tagId ? Number(route.query.tagId) : null))
-
-async function loadCategories() {
-  try {
-    categories.value = await publicApi.getCategories()
-  } catch {
-    categories.value = []
-  }
+let navigated = false
+function goArticles() {
+  if (navigated) return
+  navigated = true
+  router.push('/articles')
 }
 
-async function loadArticles() {
-  loading.value = true
-  try {
-    const data = await publicApi.getArticles({
-      page: page.current,
-      size: page.size,
-      keyword: keyword.value || undefined,
-      categoryId: activeCat.value || undefined,
-      tagId: activeTag.value || undefined,
-    })
-    articles.value = data.records || []
-    page.total = data.total || 0
-    page.pages = data.pages || 0
-  } catch {
-    articles.value = []
-  } finally {
-    loading.value = false
-  }
+// 向下滚轮 / 上滑手势 → 进入文章列表
+function onWheel(e) {
+  if (e.deltaY > 6) goArticles()
+}
+let touchStartY = 0
+function onTouchStart(e) {
+  touchStartY = e.touches[0].clientY
+}
+function onTouchMove(e) {
+  if (touchStartY - e.touches[0].clientY > 36) goArticles()
 }
 
-function selectCategory(id) {
-  const query = { ...route.query }
-  if (id) query.categoryId = id
-  else delete query.categoryId
-  delete query.tagId
-  router.push({ path: '/', query })
-}
-
-function clearSearch() {
-  const query = { ...route.query }
-  delete query.keyword
-  router.push({ path: '/', query })
-}
-
-function goPage(p) {
-  if (p < 1 || p > page.pages || p === page.current) return
-  page.current = p
-  loadArticles()
-  window.scrollTo({ top: 360, behavior: 'smooth' })
-}
-
-const pageList = computed(() => {
-  const list = []
-  const { current, pages } = page
-  const around = 2
-  for (let i = 1; i <= pages; i++) {
-    if (i === 1 || i === pages || (i >= current - around && i <= current + around)) {
-      list.push(i)
-    } else if (list[list.length - 1] !== '...') {
-      list.push('...')
-    }
-  }
-  return list
+onMounted(() => {
+  window.addEventListener('wheel', onWheel, { passive: true })
+  window.addEventListener('touchstart', onTouchStart, { passive: true })
+  window.addEventListener('touchmove', onTouchMove, { passive: true })
 })
-
-// query 变化时重置到第一页并重新拉取
-watch(
-  () => route.query,
-  () => {
-    page.current = 1
-    loadArticles()
-  },
-  { immediate: true }
-)
-loadCategories()
+onUnmounted(() => {
+  window.removeEventListener('wheel', onWheel)
+  window.removeEventListener('touchstart', onTouchStart)
+  window.removeEventListener('touchmove', onTouchMove)
+})
 </script>
 
 <template>
-  <div>
-    <!-- Hero -->
-    <section class="hero" :class="{ 'has-bg': homeBackground }">
-      <div
-        class="hero-bg"
-        :style="homeBackground ? { backgroundImage: `url(${homeBackground})` } : undefined"
-      ></div>
-      <template v-if="!homeBackground">
-        <div class="hero-orb orb1"></div>
-        <div class="hero-orb orb2"></div>
-      </template>
-      <div class="container hero-inner">
-        <span class="badge animate-pop">✦ 蔚蓝 · 记录与分享</span>
-        <h1 class="hero-title">
-          在<span class="text-gradient">代码</span>与<span class="text-gradient">思考</span>之间
-        </h1>
-        <p class="hero-sub">
-          {{ homeIntro || '一个现代、流畅、蓝白主题的个人博客 —— 探索技术，沉淀想法。' }}
-        </p>
+  <section class="hero" :class="{ 'has-bg': homeBackground }">
+    <div
+      class="hero-bg"
+      :style="homeBackground ? { backgroundImage: `url(${homeBackground})` } : undefined"
+    ></div>
+    <template v-if="!homeBackground">
+      <div class="hero-orb orb1"></div>
+      <div class="hero-orb orb2"></div>
+    </template>
+
+    <div class="container hero-inner">
+      <span class="badge animate-pop">✦ 蔚蓝 · 记录与分享</span>
+      <h1 class="hero-title">
+        在<span class="text-gradient">代码</span>与<span class="text-gradient">思考</span>之间
+      </h1>
+      <p class="hero-sub">
+        {{ homeIntro || '一个现代、流畅、蓝白主题的个人博客 —— 探索技术，沉淀想法。' }}
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary lg" @click="goArticles">浏览文章 →</button>
+        <router-link to="/about" class="btn btn-ghost lg">关于本站</router-link>
       </div>
-    </section>
-
-    <div class="container">
-      <!-- 筛选条 -->
-      <div class="filter-bar">
-        <div class="cats">
-          <button class="cat-chip" :class="{ on: !activeCat }" @click="selectCategory(null)">
-            全部
-          </button>
-          <button
-            v-for="c in categories"
-            :key="c.id"
-            class="cat-chip"
-            :class="{ on: activeCat === c.id }"
-            @click="selectCategory(c.id)"
-          >
-            {{ c.name }}
-          </button>
-        </div>
-        <p v-if="keyword" class="search-tip">
-          搜索：<b>{{ keyword }}</b>
-          <button @click="clearSearch">✕</button>
-        </p>
-      </div>
-
-      <!-- 文章网格 -->
-      <div v-if="loading" class="grid">
-        <SkeletonCard v-for="i in 6" :key="i" />
-      </div>
-
-      <template v-else>
-        <div v-if="articles.length" class="grid">
-          <ArticleCard
-            v-for="(a, i) in articles"
-            :key="a.id"
-            :article="a"
-            :index="i"
-          />
-        </div>
-        <EmptyState v-else text="没有找到相关文章" icon="🔍" />
-      </template>
-
-      <!-- 分页 -->
-      <nav v-if="page.pages > 1 && !loading" class="pager">
-        <button class="pg-btn" :disabled="page.current === 1" @click="goPage(page.current - 1)">
-          ‹
-        </button>
-        <template v-for="(p, i) in pageList" :key="i">
-          <span v-if="p === '...'" class="pg-dots">…</span>
-          <button v-else class="pg-btn" :class="{ on: p === page.current }" @click="goPage(p)">
-            {{ p }}
-          </button>
-        </template>
-        <button
-          class="pg-btn"
-          :disabled="page.current === page.pages"
-          @click="goPage(page.current + 1)"
-        >
-          ›
-        </button>
-      </nav>
     </div>
-  </div>
+
+    <button class="scroll-down" type="button" aria-label="浏览文章" @click="goArticles">
+      <span class="sd-text">向下浏览</span>
+      <span class="sd-mouse"><span class="sd-wheel"></span></span>
+    </button>
+  </section>
 </template>
 
 <style scoped>
-/* —— Hero —— */
+/* —— Hero（首屏占满视口） —— */
 .hero {
   position: relative;
   overflow: hidden;
-  padding: var(--space-8) 0 var(--space-7);
   isolation: isolate;
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-7) 0;
 }
 .hero-bg {
   position: absolute;
@@ -203,11 +96,36 @@ loadCategories()
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.16), var(--bg-body) 96%);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.42) 0%,
+    rgba(15, 23, 42, 0.2) 45%,
+    var(--bg-body) 99%
+  );
 }
-.hero.has-bg {
-  padding-top: var(--space-7);
+.hero.has-bg .hero-title,
+.hero.has-bg .hero-sub {
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
+.hero.has-bg .badge {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+.hero.has-bg .scroll-down {
+  color: rgba(255, 255, 255, 0.9);
+}
+.hero.has-bg .btn-ghost {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+.hero.has-bg .btn-ghost:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.24);
+}
+
 .hero-orb {
   position: absolute;
   z-index: -1;
@@ -217,20 +135,21 @@ loadCategories()
   animation: float 9s var(--ease-in-out) infinite;
 }
 .orb1 {
-  width: 320px;
-  height: 320px;
-  top: -80px;
-  right: 8%;
+  width: 340px;
+  height: 340px;
+  top: 8%;
+  right: 10%;
   background: radial-gradient(circle, #60a5fa, transparent 70%);
 }
 .orb2 {
-  width: 260px;
-  height: 260px;
-  bottom: -120px;
-  left: 4%;
+  width: 280px;
+  height: 280px;
+  bottom: 10%;
+  left: 6%;
   background: radial-gradient(circle, #818cf8, transparent 70%);
   animation-delay: -4s;
 }
+
 .hero-inner {
   display: flex;
   flex-direction: column;
@@ -249,105 +168,80 @@ loadCategories()
   backdrop-filter: blur(8px);
 }
 .hero-title {
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(34px, 5.5vw, 58px);
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.18;
   color: var(--text-strong);
   letter-spacing: -0.5px;
 }
 .hero-sub {
-  max-width: 560px;
+  max-width: 580px;
   color: var(--text-soft);
-  font-size: clamp(15px, 2vw, 17px);
+  font-size: clamp(15px, 2vw, 18px);
 }
-
-/* —— 筛选条 —— */
-.filter-bar {
+.hero-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
+  margin-top: 10px;
   flex-wrap: wrap;
-  margin: var(--space-6) 0 var(--space-5);
-}
-.cats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.cat-chip {
-  padding: 7px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--radius-pill);
-  color: var(--text-soft);
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  transition: all var(--t-fast) var(--ease-out);
-}
-.cat-chip:hover {
-  color: var(--brand);
-  border-color: var(--brand);
-  transform: translateY(-2px);
-}
-.cat-chip.on {
-  color: var(--text-on-brand);
-  background: var(--grad-brand);
-  border-color: transparent;
-  box-shadow: var(--shadow-brand);
-}
-.search-tip {
-  font-size: 14px;
-  color: var(--text-soft);
-}
-.search-tip b {
-  color: var(--brand);
-}
-.search-tip button {
-  margin-left: 6px;
-  color: var(--text-muted);
-}
-
-/* —— 网格 —— */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-5);
-}
-
-/* —— 分页 —— */
-.pager {
-  display: flex;
-  align-items: center;
   justify-content: center;
+}
+.btn.lg {
+  height: 50px;
+  padding-inline: 30px;
+  font-size: 15px;
+}
+
+/* —— 向下滚动指示 —— */
+.scroll-down {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  margin: var(--space-7) 0 var(--space-4);
-}
-.pg-btn {
-  min-width: 40px;
-  height: 40px;
-  padding: 0 8px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
   color: var(--text-soft);
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  transition: all var(--t-fast);
+  transition: color var(--t-fast), transform var(--t-fast) var(--ease-out);
 }
-.pg-btn:hover:not(:disabled) {
+.scroll-down:hover {
   color: var(--brand);
-  border-color: var(--brand);
+  transform: translateX(-50%) translateY(-3px);
 }
-.pg-btn.on {
-  color: var(--text-on-brand);
-  background: var(--grad-brand);
-  border-color: transparent;
+.sd-text {
+  font-size: 12px;
+  letter-spacing: 2px;
 }
-.pg-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.sd-mouse {
+  position: relative;
+  width: 24px;
+  height: 38px;
+  border: 2px solid currentColor;
+  border-radius: var(--radius-pill);
 }
-.pg-dots {
-  color: var(--text-muted);
+.sd-wheel {
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: sd-scroll 1.7s var(--ease-in-out) infinite;
+}
+@keyframes sd-scroll {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(13px);
+  }
 }
 </style>

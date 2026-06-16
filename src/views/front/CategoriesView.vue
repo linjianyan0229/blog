@@ -32,7 +32,7 @@ load()
       <router-link
         v-for="(c, i) in categories"
         :key="c.id"
-        :to="{ path: '/', query: { categoryId: c.id } }"
+        :to="{ path: '/articles', query: { categoryId: c.id } }"
         class="cat-card"
         :style="{ animationDelay: `${i * 60}ms` }"
       >
