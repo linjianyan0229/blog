@@ -87,6 +87,7 @@ const routes = [
       { path: 'categories', name: 'admin-categories', component: () => import('@/views/admin/CategoryManageView.vue'), meta: { title: '分类管理', perm: 'category:list' } },
       { path: 'tags', name: 'admin-tags', component: () => import('@/views/admin/TagManageView.vue'), meta: { title: '标签管理', perm: 'tag:list' } },
       { path: 'links', name: 'admin-links', component: () => import('@/views/admin/LinkManageView.vue'), meta: { title: '友链管理', perm: 'link:list' } },
+      { path: 'link-applies', name: 'admin-link-applies', component: () => import('@/views/admin/LinkApplyManageView.vue'), meta: { title: '友链申请', perm: 'link:audit' } },
       { path: 'comments', name: 'admin-comments', component: () => import('@/views/admin/CommentManageView.vue'), meta: { title: '评论管理', perm: 'comment:list' } },
       { path: 'users', name: 'admin-users', component: () => import('@/views/admin/UserManageView.vue'), meta: { title: '用户管理', perm: 'user:list' } },
       { path: 'roles', name: 'admin-roles', component: () => import('@/views/admin/RoleManageView.vue'), meta: { title: '角色权限', perm: 'role:list' } },

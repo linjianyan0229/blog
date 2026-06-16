@@ -20,6 +20,7 @@ import {
   Sunny,
   Moon,
   Setting,
+  Stamp,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -48,6 +49,7 @@ const menuGroups = [
       { title: '标签管理', index: '/admin/tags', icon: PriceTag, perm: 'tag:list' },
       { title: '评论管理', index: '/admin/comments', icon: ChatDotRound, perm: 'comment:list' },
       { title: '友链管理', index: '/admin/links', icon: Link, perm: 'link:list' },
+      { title: '友链申请', index: '/admin/link-applies', icon: Stamp, perm: 'link:audit' },
     ],
   },
   {

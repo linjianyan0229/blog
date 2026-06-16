@@ -75,6 +75,19 @@ export const adminApi = {
     remove: (id) => request.delete(`/admin/api-limits/${id}`),
   },
 
+  // ============ 友链申请审核 ============
+  linkApplies: {
+    // 申请分页，params: { status?(PENDING/APPROVED/REJECTED), page, size }
+    list: (params) => request.get('/admin/link-applies', { params }),
+    // 审核通过（自动写入友链并显示）
+    approve: (id) => request.post(`/admin/link-applies/${id}/approve`),
+    // 审核拒绝，remark 为拒绝原因（query 参数）
+    reject: (id, remark) =>
+      request.post(`/admin/link-applies/${id}/reject`, null, {
+        params: remark ? { remark } : {},
+      }),
+  },
+
   // ============ 站点配置 ============
   siteConfig: {
     // 配置列表（含中文名 name / 类型 type，供表单渲染）
