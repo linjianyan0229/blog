@@ -128,13 +128,6 @@ defineProps({
   background: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: float 5s var(--ease-in-out) infinite;
-}
-.fc2 {
-  animation-delay: -1.5s;
-}
-.fc3 {
-  animation-delay: -3s;
 }
 
 /* —— 右侧 —— */

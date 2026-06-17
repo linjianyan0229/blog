@@ -21,6 +21,7 @@ import {
   Moon,
   Setting,
   Stamp,
+  DataLine,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -58,6 +59,7 @@ const menuGroups = [
       { title: '用户管理', index: '/admin/users', icon: User, perm: 'user:list' },
       { title: '角色权限', index: '/admin/roles', icon: Lock, perm: 'role:list' },
       { title: '接口限流', index: '/admin/api-limits', icon: Promotion, perm: 'api:list' },
+      { title: '访问统计', index: '/admin/visit', icon: DataLine, perm: 'visit:list' },
       { title: '站点配置', index: '/admin/site-config', icon: Setting, perm: 'config:list' },
     ],
   },

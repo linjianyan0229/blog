@@ -90,9 +90,19 @@ export const adminApi = {
 
   // ============ 站点配置 ============
   siteConfig: {
-    // 配置列表（含中文名 name / 类型 type，供表单渲染）
+    // 配置列表（含中文名 name / 类型 type，供表单渲染；含邮箱 SMTP 配置）
     list: () => request.get('/admin/site-config'),
     // 批量更新：请求体为数组，每项 { configKey, configValue, name?, type?, sort? }
     update: (list) => request.put('/admin/site-config', list),
+    // 用当前邮箱配置发测试邮件，to 为收件邮箱（query）
+    testMail: (to) => request.post('/admin/site-config/test-mail', null, { params: { to } }),
+  },
+
+  // ============ 访问统计 ============
+  visit: {
+    // 访问量统计：totalPv/totalUv/todayPv/todayUv
+    stats: () => request.get('/admin/visit/stats'),
+    // 访问日志分页，params: { ip?, page, size }
+    logs: (params) => request.get('/admin/visit/logs', { params }),
   },
 }

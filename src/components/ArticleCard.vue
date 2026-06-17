@@ -25,7 +25,9 @@ const delay = computed(() => `${Math.min(props.index, 8) * 60}ms`)
       </div>
 
       <div class="body">
-        <h3 class="title clamp-2">{{ article.title }}</h3>
+        <h3 class="title clamp-2">
+          <span v-if="article.hasPassword" class="lock-tag" title="加密文章">🔒</span>{{ article.title }}
+        </h3>
         <p class="summary clamp-2">{{ article.summary || '暂无摘要…' }}</p>
 
         <div v-if="article.tags?.length" class="tags">
@@ -135,6 +137,11 @@ const delay = computed(() => `${Math.min(props.index, 8) * 60}ms`)
   color: var(--text-strong);
   line-height: 1.4;
   transition: color var(--t-fast);
+}
+.lock-tag {
+  font-size: 13px;
+  margin-right: 4px;
+  vertical-align: 1px;
 }
 .card-link:hover .title {
   color: var(--brand);

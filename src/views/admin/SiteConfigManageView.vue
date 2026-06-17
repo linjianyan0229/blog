@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Check, UploadFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Check, UploadFilled, Message } from '@element-plus/icons-vue'
 import { adminApi } from '@/api/admin'
 import { fileApi } from '@/api/file'
 import { useUserStore } from '@/stores/user'
@@ -54,6 +54,18 @@ async function save() {
   }
 }
 
+async function sendTestMail() {
+  const { value } = await ElMessageBox.prompt('请输入接收测试邮件的邮箱地址', '发送测试邮件', {
+    confirmButtonText: '发送',
+    cancelButtonText: '取消',
+    inputPattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    inputErrorMessage: '邮箱格式不正确',
+    inputPlaceholder: 'you@example.com',
+  })
+  await adminApi.siteConfig.testMail(value)
+  ElMessage.success(`测试邮件已发送，请查收 ${value}`)
+}
+
 load()
 </script>
 
@@ -61,6 +73,9 @@ load()
   <div>
     <PageHeader title="站点配置" subtitle="自定义站点名称、Logo、首页背景、页脚等，保存后即时生效">
       <template #actions>
+        <el-button v-if="userStore.hasPerm('config:update')" :icon="Message" round @click="sendTestMail">
+          发送测试邮件
+        </el-button>
         <el-button
           v-if="userStore.hasPerm('config:update')"
           type="primary"
@@ -88,6 +103,16 @@ load()
           <el-input
             v-if="item.type === 'text'"
             v-model="item.configValue"
+            placeholder="请输入"
+            clearable
+          />
+
+          <!-- 密码（如邮箱 SMTP 授权码） -->
+          <el-input
+            v-else-if="item.type === 'password'"
+            v-model="item.configValue"
+            type="password"
+            show-password
             placeholder="请输入"
             clearable
           />

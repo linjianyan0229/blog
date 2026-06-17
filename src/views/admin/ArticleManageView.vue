@@ -173,6 +173,7 @@ load()
             </el-tag>
             <el-tag v-if="row.isPublic === 0" type="warning" size="small" class="mark">不公开</el-tag>
             <el-tag v-if="row.top === 1" type="danger" size="small" class="mark">置顶</el-tag>
+            <el-tag v-if="row.hasPassword" size="small" class="mark">🔒 加密</el-tag>
           </template>
         </el-table-column>
 

@@ -12,6 +12,8 @@ const { userInfo } = storeToRefs(userStore)
 
 const loading = ref(true)
 const stats = reactive({ articles: 0, users: 0, comments: 0, categories: 0, tags: 0, links: 0 })
+const visit = reactive({ totalPv: 0, totalUv: 0, todayPv: 0, todayUv: 0 })
+const showVisit = computed(() => userStore.hasPerm('visit:list'))
 
 const hour = new Date().getHours()
 const greeting = computed(() => {
@@ -45,6 +47,8 @@ async function load() {
     tasks.push(adminApi.tags.list().then((d) => (stats.tags = (d || []).length)).catch(() => {}))
   if (userStore.hasPerm('link:list'))
     tasks.push(adminApi.links.list().then((d) => (stats.links = (d || []).length)).catch(() => {}))
+  if (userStore.hasPerm('visit:list'))
+    tasks.push(adminApi.visit.stats().then((d) => Object.assign(visit, d || {})).catch(() => {}))
   await Promise.allSettled(tasks)
   loading.value = false
 }
@@ -79,6 +83,32 @@ load()
         </div>
       </el-col>
     </el-row>
+
+    <!-- 访问统计 -->
+    <div v-if="showVisit" class="visit-panel card">
+      <div class="vp-head">
+        <h3>网站访问</h3>
+        <router-link to="/admin/visit" class="vp-more">查看访问日志 →</router-link>
+      </div>
+      <div class="vp-grid">
+        <div class="vp-item">
+          <span class="vp-num">{{ visit.totalPv }}</span>
+          <span class="vp-label">总访问量 PV</span>
+        </div>
+        <div class="vp-item">
+          <span class="vp-num">{{ visit.totalUv }}</span>
+          <span class="vp-label">总访客数 UV</span>
+        </div>
+        <div class="vp-item">
+          <span class="vp-num accent">{{ visit.todayPv }}</span>
+          <span class="vp-label">今日访问</span>
+        </div>
+        <div class="vp-item">
+          <span class="vp-num accent">{{ visit.todayUv }}</span>
+          <span class="vp-label">今日访客</span>
+        </div>
+      </div>
+    </div>
 
     <!-- 快捷操作 -->
     <div class="quick card">
@@ -190,6 +220,55 @@ load()
   color: var(--text-muted);
 }
 
+.visit-panel {
+  padding: 24px;
+}
+.vp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.vp-head h3 {
+  font-size: 17px;
+  color: var(--text-strong);
+}
+.vp-more {
+  font-size: 13px;
+  color: var(--brand);
+}
+.vp-more:hover {
+  text-decoration: underline;
+}
+.vp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+.vp-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg-sunken);
+  text-align: center;
+}
+.vp-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.vp-num.accent {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.vp-label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
 .quick {
   padding: 24px;
 }

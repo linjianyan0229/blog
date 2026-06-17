@@ -3,6 +3,7 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { useUserStore } from '@/stores/user'
 import { useSiteStore } from '@/stores/site'
+import { publicApi } from '@/api/public'
 import { toast } from '@/utils/message'
 
 NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.12 })
@@ -92,6 +93,7 @@ const routes = [
       { path: 'users', name: 'admin-users', component: () => import('@/views/admin/UserManageView.vue'), meta: { title: '用户管理', perm: 'user:list' } },
       { path: 'roles', name: 'admin-roles', component: () => import('@/views/admin/RoleManageView.vue'), meta: { title: '角色权限', perm: 'role:list' } },
       { path: 'api-limits', name: 'admin-api-limits', component: () => import('@/views/admin/ApiLimitManageView.vue'), meta: { title: '接口限流', perm: 'api:list' } },
+      { path: 'visit', name: 'admin-visit', component: () => import('@/views/admin/VisitLogView.vue'), meta: { title: '访问统计', perm: 'visit:list' } },
       { path: 'site-config', name: 'admin-site-config', component: () => import('@/views/admin/SiteConfigManageView.vue'), meta: { title: '站点配置', perm: 'config:list' } },
     ],
   },
@@ -157,6 +159,10 @@ router.afterEach((to) => {
   const baseTitle = useSiteStore().siteName || DEFAULT_TITLE
   document.title = to.meta.title ? `${to.meta.title} · ${baseTitle}` : baseTitle
   NProgress.done()
+  // 前台页面访问埋点（后台 / 认证页不计入），失败静默
+  const skip =
+    to.path.startsWith('/admin') || ['login', 'register', 'reset-password'].includes(to.name)
+  if (!skip) publicApi.recordVisit(to.fullPath).catch(() => {})
 })
 
 export default router

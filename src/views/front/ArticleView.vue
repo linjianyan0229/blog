@@ -21,6 +21,33 @@ const contentEl = ref(null)
 const html = computed(() => (article.value ? renderMarkdown(article.value.content) : ''))
 const toc = computed(() => article.value?.toc || [])
 
+// 文章访问密码解锁
+const unlockPassword = ref('')
+const unlocking = ref(false)
+const unlockError = ref('')
+
+async function doUnlock() {
+  if (!unlockPassword.value.trim()) {
+    unlockError.value = '请输入访问密码'
+    return
+  }
+  if (unlocking.value) return
+  unlocking.value = true
+  unlockError.value = ''
+  try {
+    const detail = await publicApi.unlockArticle(article.value.id, unlockPassword.value)
+    article.value = detail
+    unlockPassword.value = ''
+    await nextTick()
+    setupTocObserver()
+    toast.success('解锁成功')
+  } catch (e) {
+    unlockError.value = e.code === 1011 ? '密码错误，请重试' : e.message || '解锁失败'
+  } finally {
+    unlocking.value = false
+  }
+}
+
 let observer = null
 
 async function load(id) {
@@ -142,13 +169,35 @@ watch(() => route.params.id, (id) => id && load(id), { immediate: true })
       <div class="container body-grid">
         <!-- 正文 -->
         <article class="content-col">
-          <div ref="contentEl" class="markdown-body card content-card" v-html="html"></div>
+          <!-- 加密文章：未解锁时显示密码输入 -->
+          <div v-if="article.needPassword" class="lock-card card">
+            <div class="lock-icon">🔒</div>
+            <h3>该文章已加密</h3>
+            <p>请输入访问密码以查看全文</p>
+            <div class="lock-form">
+              <input
+                v-model="unlockPassword"
+                type="password"
+                placeholder="访问密码"
+                :class="{ err: unlockError }"
+                @keyup.enter="doUnlock"
+              />
+              <button class="btn btn-primary" :disabled="unlocking" @click="doUnlock">
+                {{ unlocking ? '验证中…' : '解锁' }}
+              </button>
+            </div>
+            <p v-if="unlockError" class="lock-err">{{ unlockError }}</p>
+          </div>
 
-          <CommentSection
-            :article-id="article.id"
-            :count="article.commentCount"
-            @change="onCommentChange"
-          />
+          <template v-else>
+            <div ref="contentEl" class="markdown-body card content-card" v-html="html"></div>
+
+            <CommentSection
+              :article-id="article.id"
+              :count="article.commentCount"
+              @change="onCommentChange"
+            />
+          </template>
         </article>
 
         <!-- 侧栏 TOC -->
@@ -302,6 +351,62 @@ watch(() => route.params.id, (id) => id && load(id), { immediate: true })
 }
 .content-card {
   padding: clamp(20px, 4vw, 44px);
+}
+
+/* —— 加密文章解锁 —— */
+.lock-card {
+  padding: clamp(36px, 6vw, 60px) 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.lock-icon {
+  font-size: 52px;
+  margin-bottom: 6px;
+  animation: pop-in 0.4s var(--ease-spring) both;
+}
+.lock-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.lock-card > p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.lock-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+.lock-form input {
+  flex: 1;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-elev);
+  font-size: 15px;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.lock-form input:focus {
+  border-color: var(--brand);
+}
+.lock-form input.err {
+  border-color: #ef4444;
+}
+.lock-form .btn {
+  height: 46px;
+  flex: none;
+}
+.lock-err {
+  color: #ef4444;
+  font-size: 13px;
 }
 
 /* —— 侧栏 —— */

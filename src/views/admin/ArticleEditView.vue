@@ -31,6 +31,7 @@ const form = reactive({
   tagIds: [],
   isPublic: 1,
   top: 0,
+  password: '',
   status: 1,
 })
 
@@ -55,6 +56,7 @@ async function load() {
       form.categoryId = detail.categoryId ?? null
       form.isPublic = detail.isPublic ?? 1
       form.top = detail.top ?? 0
+      form.password = detail.password || ''
       form.status = detail.status ?? 1
 
       // ===== 标签回显 =====
@@ -106,6 +108,7 @@ async function save(status) {
       tagIds: form.tagIds,
       isPublic: form.isPublic,
       top: form.top,
+      password: form.password,
       status,
     }
     if (isEdit.value) {
@@ -242,6 +245,17 @@ load()
                   <el-switch v-model="form.top" :active-value="1" :inactive-value="0" />
                 </span>
               </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="24" :md="8">
+            <el-form-item label="访问密码">
+              <el-input
+                v-model="form.password"
+                placeholder="留空表示不加密；填写后读全文需输入"
+                clearable
+                show-password
+              />
             </el-form-item>
           </el-col>
         </el-row>

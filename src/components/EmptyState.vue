@@ -26,7 +26,8 @@ defineProps({
 .ico {
   font-size: 56px;
   filter: grayscale(0.2);
-  animation: float 4s var(--ease-in-out) infinite;
+  /* 仅入场轻微弹出，不再持续上下浮动 */
+  animation: pop-in 0.45s var(--ease-spring) both;
 }
 .empty p {
   color: var(--text-muted);
