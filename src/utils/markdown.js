@@ -33,7 +33,12 @@ export function slugify(text) {
 
 md.use(anchor, {
   slugify,
-  permalink: anchor.permalink.headerLink({ safariReaderFix: true }),
+  // 在标题文本后插入独立的 # 锚点链接（默认隐藏、悬停显示），
+  // 而非把整个标题包成链接——后者会被 .header-anchor 的 opacity:0 样式整体隐藏
+  permalink: anchor.permalink.linkInsideHeader({
+    symbol: '#',
+    placement: 'after',
+  }),
   tabIndex: false,
 })
 

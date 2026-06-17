@@ -18,6 +18,8 @@ html {
   scroll-behavior: smooth;
   /* 顶部锚点跳转留出导航栏高度 */
   scroll-padding-top: calc(var(--header-h) + 16px);
+  /* 始终预留滚动条空间，避免页面在有/无滚动条间切换时左右抖动 */
+  scrollbar-gutter: stable;
 }
 
 body {

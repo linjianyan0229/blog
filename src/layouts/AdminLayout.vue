@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import {
@@ -90,6 +90,14 @@ async function doLogout() {
   toast.success('已退出登录')
   router.push('/login')
 }
+
+// 后台用 el-main 内部滚动，进入时关闭窗口级 gutter 以免右侧留白，离开后恢复
+onMounted(() => {
+  document.documentElement.style.scrollbarGutter = 'auto'
+})
+onUnmounted(() => {
+  document.documentElement.style.scrollbarGutter = ''
+})
 </script>
 
 <template>
@@ -280,5 +288,7 @@ async function doLogout() {
 .main {
   padding: var(--space-5);
   overflow-y: auto;
+  /* 后台内容区滚动条恒定预留，切换页面不抖动 */
+  scrollbar-gutter: stable;
 }
 </style>
