@@ -20,7 +20,7 @@ const features = [
     <section class="intro card">
       <div class="intro-orb"></div>
       <span class="badge">关于本站</span>
-      <h1>你好，欢迎来到<span class="text-gradient">蔚蓝博客</span> 👋</h1>
+      <h1>你好，欢迎来到<span class="text-gradient">我的博客</span> 👋</h1>
       <p>
         这是一个基于 <b>Vue 3 + Vite</b> 构建的现代个人博客前端，搭配 Spring Boot 后端，
         提供文章浏览、分类标签、评论互动与完整的后台管理。设计上追求蓝白通透的视觉、
